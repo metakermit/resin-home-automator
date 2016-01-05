@@ -35,7 +35,7 @@ Build the image:
     docker build -f Dockerfile.dev.base -t resin/armv7hf-debian . # only once
     docker build -t homeautomator .
 
-You can now run it (change Dockerfile `FROM` command to debian for local testing)
+You can now run it:
 
     docker run -i -p 8080:80 homeautomator
 

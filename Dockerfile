@@ -6,9 +6,6 @@
 # for deployment to RPi2 via Resin.io
 FROM resin/armv7hf-debian:latest
 
-# for local debugging
-#FROM debian:latest
-
 # install python3
 #================
 RUN apt-get update && apt-get install -yq --no-install-recommends \
@@ -37,6 +34,5 @@ RUN /venv/bin/pip install -r /app/requirements.txt
 #run the app when the container starts
 #======================================s
 CMD ["/venv/bin/honcho", "-f", "/app/Procfile", "start"]
-#CMD /venv/bin/honcho -f /app/Procfile start 2>&1 | tee /data/homeautomator.log
 
 EXPOSE 80
