@@ -1,8 +1,5 @@
 redis: redis-server
-web: ./venv/bin/gunicorn main:app -b 0.0.0.0:5000 --chdir=src --log-level info --access-logfile=web.log --error-logfile=web.error.log
-web_output: while ! tail -f web.log ; do sleep 1 ; done
-web_error_output: while ! tail -f web.error.log ; do sleep 1 ; done
-worker: ./venv/bin/celery worker -A main.celery --loglevel=info --logfile=../worker.log --workdir=src -B
-worker_output: while ! tail -f worker.log ; do sleep 1 ; done
+web: ./venv/bin/gunicorn main:app -b 0.0.0.0:5000 --chdir=src --log-level info --access-logfile=- --error-logfile=-
+worker: ./venv/bin/celery worker -A main.celery --loglevel=info --workdir=src -B
 # -B embeds the beat into the worker - if more than one worker is needed, create a separate scheduler:
 # scheduler: ./venv/bin/celery beat -A main.celery --loglevel=debug --workdir=app

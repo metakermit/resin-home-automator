@@ -1,58 +1,43 @@
 import json
 
 from flask import Flask
+from tv import play, pause
 
 app = Flask(__name__)
 content_type_json = {'Content-Type': 'text/css; charset=utf-8'}
 
 # Celery conf
 from celery import Celery
-from celery.signals import worker_ready
 app.config['CELERY_BROKER_URL'] = 'redis://localhost:6379/0'
-app.config['CELERY_RESULT_BACKEND'] = 'redis://localhost:6379/0'
-app.config['CELERY_TIMEZONE'] = 'Australia/Melbourne'
+#app.config['CELERY_RESULT_BACKEND'] = 'redis://localhost:6379/0'
+app.config['CELERY_TIMEZONE'] = 'UTC'
 
 # execute task at certain intervals
 from datetime import timedelta
 from celery.schedules import crontab
 app.config['CELERYBEAT_SCHEDULE'] = {
-    # test task at 5 s intervals
-    'pause-every-5-seconds': {
-        'task': 'tasks.constant_task',
-        'schedule': timedelta(seconds=5)
-    },
     'play-every-morning': {
-        'task': 'tasks.morning_task',
-        'schedule': crontab(hour=8, minute=0)
+        'task': 'tasks.play_task',
+        'schedule': crontab(hour=9, minute=0)
     },
-    'play-repeatedly-during-day': {
-        'task': 'tasks.worktime_task',
-        # 9:00 - 17:00 every 5 minutes
-        # day_of_week - Sunday = 0 and Saturday = 6
-        'schedule': crontab(hour='9-18', minute='*/1', day_of_week='1-5')
-    },
+    'pause-later': {
+        'task': 'tasks.pause_task',
+        'schedule': crontab(hour=9, minute=10)
+    }
 }
 
 celery = Celery(app.name, broker=app.config['CELERY_BROKER_URL'])
 celery.conf.update(app.config)
 
-@celery.task(name='tasks.constant_task')
-def constant_task():
-    print('ping')
+@celery.task(name='tasks.play_task')
+def play_task():
+    print('play something')
+    return play()
 
-@celery.task(name='tasks.morning_task')
-def morning_task():
-    print('good morning')
-
-@celery.task(name='tasks.worktime_task')
-def worktime_task():
-    print('work work')
-
-# optional task to run on startup, no matter what
-@worker_ready.connect
-def at_start(sender, **k):
-    with sender.app.connection() as conn:
-         sender.app.send_task('tasks.constant_task', connection=conn)
+@celery.task(name='tasks.pause_task')
+def pause_task():
+    print('enough fun')
+    return pause()
 
 # Routes for manual controls
 ############################
@@ -64,12 +49,12 @@ def hello_world():
 
 @app.route('/play')
 def get_play():
-    #play_task.delay()
+    play_task.delay()
     return 'Playing! <a href="/">back</a>'
 
 @app.route('/pause')
 def get_pause():
-    #pause_task.delay()
+    pause_task.delay()
     return 'Pausing! <a href="/">back</a>'
 
 if __name__ == '__main__':
