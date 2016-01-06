@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install -yq --no-install-recommends \
 		python3 \
 		python3-dev \
 		python3-dbus \
+		build-essential \
 		curl \
 		redis-server \
 	&& rm -rf /var/lib/apt/lists/*
